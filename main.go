@@ -9,7 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/dipeshdulal/event-scheduling/customevents"
+	"github.com/apudiu/event-scheduler/customevents"
 )
 
 var eventListeners = Listeners{
