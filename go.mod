@@ -1,4 +1,4 @@
-module github.com/dipeshdulal/event-scheduling
+module github.com/apudiu/event-scheduler
 
 go 1.15
 
