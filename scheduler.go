@@ -1,4 +1,5 @@
 // Package scheduler allows delayed and recurring event dispatching
+// with ways to persist events, so events doesn't gets lost when server restarted
 package scheduler
 
 import (
