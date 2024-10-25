@@ -1,3 +1,4 @@
+// Package scheduler allows delayed and recurring event dispatching
 package scheduler
 
 import (
@@ -145,40 +146,6 @@ func (s Scheduler) ScheduleRecurring(evtName string, payload string, cronStr str
 		}
 	}
 }
-
-//// ScheduleRecurringDur schedules a cron job
-//func (s Scheduler) ScheduleRecurringDur(evtName string, payload string, dur time.Duration) {
-//	log.Print("🚀 Scheduling event ", evtName, " with cron string ", dur)
-//	entryID, ok := s.cronEntries[evtName]
-//	if ok {
-//		s.cron.Remove(entryID)
-//		err := s.dp.UpdateByName(evtName, &event.Event{
-//			Payload: payload,
-//			Cron:    &cronStr,
-//		})
-//		if err != nil {
-//			log.Print("schedule cron update error: ", err)
-//		}
-//	} else {
-//		_, err := s.dp.AddRecurring(evtName, payload, cronStr)
-//		if err != nil {
-//			log.Print("schedule cron insert error: ", err)
-//		}
-//	}
-//
-//	listenerFns, ok := s.listeners[evtName]
-//	if ok {
-//		cronId, err := s.cron.AddFunc(cronStr, func() {
-//			for _, fn := range listenerFns {
-//				fn(payload)
-//			}
-//		})
-//		s.cronEntries[evtName] = cronId
-//		if err != nil {
-//			log.Print("💀 error: ", err)
-//		}
-//	}
-//}
 
 // attachCronJobs attaches cron jobs
 func (s Scheduler) attachCronJobs() {
