@@ -8,7 +8,7 @@ import (
 // Model is gorm model for events storage, it generates a table named "scheduler_events"
 type Model struct {
 	ID      uint       `json:"id" gorm:"primaryKey"`
-	Name    string     `json:"name" gorm:"type:varchar(250);uniqueIndex;not null;"`
+	Name    string     `json:"name" gorm:"type:varchar(250);index;not null;"`
 	Payload string     `json:"payload" gorm:"type:text;not null;"`
 	RunAt   *time.Time `json:"run_at" gorm:"type:datetime;"`
 	Cron    *string    `json:"cron" gorm:"type:varchar(150);"`
