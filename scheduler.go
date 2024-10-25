@@ -174,8 +174,8 @@ func (s Scheduler) attachCronJobs() {
 	}
 }
 
-// StartCron starts cron job
-func (s Scheduler) StartCron() func() {
+// StartCron starts cron job. It returns cleanup to stop the cron
+func (s Scheduler) StartCron() (cleanup func()) {
 	s.attachCronJobs()
 	s.cron.Start()
 
