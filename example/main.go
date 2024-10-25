@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/apudiu/event-scheduler/customevents"
 	"github.com/apudiu/event-scheduler/db/driver/gormdriver"
-	"github.com/apudiu/event-scheduler/scheduler"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -12,7 +11,7 @@ import (
 	"time"
 )
 
-var eventListeners = scheduler.Listeners{
+var eventListeners = event_scheduler.Listeners{
 	"SendEmail": {customevents.SendEmail},
 	"PayBills":  {customevents.PayBills},
 }
@@ -26,7 +25,7 @@ func main() {
 	var db *gorm.DB
 
 	s := gormdriver.New(db)
-	scd := scheduler.NewScheduler(s, eventListeners)
+	scd := event_scheduler.NewScheduler(s, eventListeners)
 
 	stopCron := scd.StartCron()
 	defer stopCron()
@@ -36,7 +35,7 @@ func main() {
 	scd.Schedule("SendEmail", "mail: nilkantha.dipesh@gmail.com", time.Now().Add(1*time.Minute))
 	scd.Schedule("PayBills", "paybills: $4,000 bill", time.Now().Add(2*time.Minute))
 
-	scd.ScheduleCron("SendEmail", "mail: dipesh.dulal+new@wesionary.team", "* * * * *")
+	scd.ScheduleRecurring("SendEmail", "mail: dipesh.dulal+new@wesionary.team", "* * * * *")
 
 	go func() {
 		for range interrupt {

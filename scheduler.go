@@ -1,59 +1,54 @@
-package main
+package scheduler
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"time"
 
 	"github.com/robfig/cron/v3"
+
+	"github.com/apudiu/event-scheduler/db"
+	"github.com/apudiu/event-scheduler/event"
 )
 
 // Scheduler data structure
 type Scheduler struct {
-	db          *sql.DB
+	dp          db.DataPersistent
 	listeners   Listeners
 	cron        *cron.Cron
 	cronEntries map[string]cron.EntryID
 }
 
 // Listeners has attached event listeners
-type Listeners map[string]ListenFunc
+type Listeners map[string][]ListenFunc
 
 // ListenFunc function that listens to events
 type ListenFunc func(string)
 
-// Event structure
-type Event struct {
-	ID      uint
-	Name    string
-	Payload string
-	Cron    string
-}
-
 // NewScheduler creates a new scheduler
-func NewScheduler(db *sql.DB, listeners Listeners) Scheduler {
-
-	return Scheduler{
-		db:          db,
+func NewScheduler(dp db.DataPersistent, listeners Listeners) *Scheduler {
+	return &Scheduler{
+		dp:          dp,
 		listeners:   listeners,
 		cron:        cron.New(),
 		cronEntries: map[string]cron.EntryID{},
 	}
-
 }
 
 // AddListener adds the listener function to Listeners
-func (s Scheduler) AddListener(event string, listenFunc ListenFunc) {
-	s.listeners[event] = listenFunc
+func (s Scheduler) AddListener(event string, listenFunctions []ListenFunc) {
+	s.listeners[event] = listenFunctions
 }
 
 // callListeners calls the event listener of provided event
-func (s Scheduler) callListeners(event Event) {
-	eventFn, ok := s.listeners[event.Name]
+func (s Scheduler) callListeners(event event.Event) {
+	listenerFns, ok := s.listeners[event.Name]
 	if ok {
-		go eventFn(event.Payload)
-		_, err := s.db.Exec(`DELETE FROM "public"."jobs" WHERE "id" = $1`, event.ID)
+		for _, fn := range listenerFns {
+			go fn(event.Payload)
+		}
+
+		_, err := s.dp.Delete(event.ID)
 		if err != nil {
 			log.Print("💀 error: ", err)
 		}
@@ -75,7 +70,7 @@ func (s Scheduler) CheckEventsInInterval(ctx context.Context, duration time.Dura
 			case <-ticker.C:
 				log.Println("⏰ Ticks Received...")
 				events := s.checkDueEvents()
-				for _, e := range events {
+				for _, e := range *events {
 					s.callListeners(e)
 				}
 			}
@@ -85,75 +80,129 @@ func (s Scheduler) CheckEventsInInterval(ctx context.Context, duration time.Dura
 }
 
 // checkDueEvents checks and returns due events
-func (s Scheduler) checkDueEvents() []Event {
-	events := []Event{}
-	rows, err := s.db.Query(`SELECT "id", "name", "payload" FROM "public"."jobs" WHERE "runAt" < $1 AND "cron"='-'`, time.Now())
+func (s Scheduler) checkDueEvents() *[]event.Event {
+	sEvents, err := s.dp.GetAll()
 	if err != nil {
 		log.Print("💀 error: ", err)
 		return nil
 	}
-	for rows.Next() {
-		evt := Event{}
-		rows.Scan(&evt.ID, &evt.Name, &evt.Payload)
-		events = append(events, evt)
+
+	events := make([]event.Event, 0)
+	for _, se := range sEvents {
+		events = append(events, *se.GetEvent())
 	}
-	return events
+
+	return &events
 }
 
-// Schedule sechedules the provided events
+// Schedule schedules the provided events
 func (s Scheduler) Schedule(event string, payload string, runAt time.Time) {
 	log.Print("🚀 Scheduling event ", event, " to run at ", runAt)
-	_, err := s.db.Exec(`INSERT INTO "public"."jobs" ("name", "payload", "runAt") VALUES ($1, $2, $3)`, event, payload, runAt)
+	_, err := s.dp.AddWithTime(event, payload, runAt)
 	if err != nil {
 		log.Print("schedule insert error: ", err)
 	}
 }
 
-// ScheduleCron schedules a cron job
-func (s Scheduler) ScheduleCron(event string, payload string, cron string) {
-	log.Print("🚀 Scheduling event ", event, " with cron string ", cron)
-	entryID, ok := s.cronEntries[event]
+func (s Scheduler) ScheduleDur(event string, payload string, runAfter time.Duration) {
+	log.Print("🚀 Scheduling event with dur ", event, " to run after ", runAfter)
+	_, err := s.dp.AddWithDuration(event, payload, runAfter)
+	if err != nil {
+		log.Print("schedule insert error: ", err)
+	}
+}
+
+// ScheduleRecurring schedules a cron job
+func (s Scheduler) ScheduleRecurring(evtName string, payload string, cronStr string) {
+	log.Print("🚀 Scheduling event ", evtName, " with cron string ", cronStr)
+	entryID, ok := s.cronEntries[evtName]
 	if ok {
 		s.cron.Remove(entryID)
-		_, err := s.db.Exec(`UPDATE "public"."jobs" SET "cron" = $1 , "payload" = $2 WHERE "name" = $3 AND "cron" != '-'`, cron, payload, event)
+		err := s.dp.UpdateByName(evtName, &event.Event{
+			Payload: payload,
+			Cron:    &cronStr,
+		})
 		if err != nil {
 			log.Print("schedule cron update error: ", err)
 		}
 	} else {
-		_, err := s.db.Exec(`INSERT INTO "public"."jobs" ("name", "payload", "runAt", "cron") VALUES ($1, $2, $3, $4)`, event, payload, time.Now(), cron)
+		_, err := s.dp.AddRecurring(evtName, payload, cronStr)
 		if err != nil {
 			log.Print("schedule cron insert error: ", err)
 		}
 	}
 
-	eventFn, ok := s.listeners[event]
+	listenerFns, ok := s.listeners[evtName]
 	if ok {
-		entryID, err := s.cron.AddFunc(cron, func() { eventFn(payload) })
-		s.cronEntries[event] = entryID
+		cronId, err := s.cron.AddFunc(cronStr, func() {
+			for _, fn := range listenerFns {
+				fn(payload)
+			}
+		})
+		s.cronEntries[evtName] = cronId
 		if err != nil {
 			log.Print("💀 error: ", err)
 		}
 	}
 }
 
+//// ScheduleRecurringDur schedules a cron job
+//func (s Scheduler) ScheduleRecurringDur(evtName string, payload string, dur time.Duration) {
+//	log.Print("🚀 Scheduling event ", evtName, " with cron string ", dur)
+//	entryID, ok := s.cronEntries[evtName]
+//	if ok {
+//		s.cron.Remove(entryID)
+//		err := s.dp.UpdateByName(evtName, &event.Event{
+//			Payload: payload,
+//			Cron:    &cronStr,
+//		})
+//		if err != nil {
+//			log.Print("schedule cron update error: ", err)
+//		}
+//	} else {
+//		_, err := s.dp.AddRecurring(evtName, payload, cronStr)
+//		if err != nil {
+//			log.Print("schedule cron insert error: ", err)
+//		}
+//	}
+//
+//	listenerFns, ok := s.listeners[evtName]
+//	if ok {
+//		cronId, err := s.cron.AddFunc(cronStr, func() {
+//			for _, fn := range listenerFns {
+//				fn(payload)
+//			}
+//		})
+//		s.cronEntries[evtName] = cronId
+//		if err != nil {
+//			log.Print("💀 error: ", err)
+//		}
+//	}
+//}
+
 // attachCronJobs attaches cron jobs
 func (s Scheduler) attachCronJobs() {
 	log.Printf("Attaching cron jobs")
-	rows, err := s.db.Query(`SELECT "id", "name", "payload", "cron" FROM "public"."jobs" WHERE "cron"!='-'`)
+	sEvents, err := s.dp.GetAllRecurring()
 	if err != nil {
 		log.Print("💀 error: ", err)
 	}
-	for rows.Next() {
-		evt := Event{}
-		rows.Scan(&evt.ID, &evt.Name, &evt.Payload, &evt.Cron)
-		eventFn, ok := s.listeners[evt.Name]
-		if ok {
-			entryID, err := s.cron.AddFunc(evt.Cron, func() { eventFn(evt.Payload) })
-			s.cronEntries[evt.Name] = entryID
 
-			if err != nil {
-				log.Print("💀 error: ", err)
+	for _, se := range sEvents {
+		evt := *se.GetEvent()
+		listenerFns, ok := s.listeners[evt.Name]
+		if ok {
+			entryID, err2 := s.cron.AddFunc(*evt.Cron, func() {
+				for _, fn := range listenerFns {
+					fn(evt.Payload)
+				}
+			})
+			if err2 != nil {
+				log.Print("💀 error: ", err2)
+				continue
 			}
+
+			s.cronEntries[evt.Name] = entryID
 		}
 	}
 }
