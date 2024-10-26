@@ -38,3 +38,56 @@ type DataPersistent interface {
 	// DeleteAll deletes all events from persistent layer
 	DeleteAll() ([]event.SchedulerEvent, error)
 }
+
+type RedisDriver struct {
+}
+
+func (r RedisDriver) GetOne(eventId uint) (event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) GetAll() ([]event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) AddWithTime(name string, payload payload.TransferablePayload, runAt time.Time) (event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) AddWithDuration(name string, payload payload.TransferablePayload, runAfter time.Duration) (event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) GetAllRecurring() ([]event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) AddRecurring(name string, payload payload.TransferablePayload, cron string) (event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) AddRecurringWithDuration(name string, payload payload.TransferablePayload, runEvery time.Duration) (event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) UpdateByName(eventName string, evt *event.Event) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) Delete(eventId uint) (event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r RedisDriver) DeleteAll() ([]event.SchedulerEvent, error) {
+	//TODO implement me
+	panic("implement me")
+}

@@ -1,36 +1,54 @@
-### Database Based Event Scheduling
+### What it is
+This is a scheduler with support for events persistence. Following is key features
+1. Schedule event for single execution (with `time.Time` or `time.Duration`)
+2. Schedule event for recurring execution (with cron string ([generate here](https://crontab.guru)) or `time.Duration`)
+3. Events persistence with `gorm` supported db's or your own persistent storage (create by implementing single interface)
+4. Customized event payload, Use included `gob` payload or create your own payload (create by implementing single interface)
 
-Example that demonstrates super basic database based event scheduling.
+#### To run example;
+- Clone repo & set your (`gorm` supported db) credentials in `example/bootstrap/db.go:21`
+- Run `go run example/main.go` 
 
+#### Installation
+Install the package in your project using go
+```shell
+go get github.com/apudiu/event-scheduler
+```
 
-#### To run this example; 
-- Copy `.env.example` to `.env` and update postgres database dsn.
-- Run `go run .` 
+### Usage
 
-
-**Basically,**
- - When we want to schedule a job, we add to database 
+##### Persistence driver
+First a persistent driver is needed to create a scheduler. You can use existing `gormdriver` to persist events in `gorm` supported databases.
 ```go
-scheduler.Schedule("SendEmail", "mail: nilkantha.dipesh@gmail.com", time.Now().Add(1*time.Minute)) 
-```
+import (
+    "github.com/apudiu/event-scheduler/dp/driver/gormdriver"
+)
 
-- Another go routine is always looking for jobs to execute (that has time expired) in the given interval.
+var DB *gorm.DB // your existing/ created gorm connection
+var persis = gormdriver.New(DB)
+```
+If you dont want `gorm` then you can create your own persistence driver by implementing `dp.DataPersistent` interface.
+For better understanding on how to do it, can check `gormdriver` implementation
+
+##### Scheduler creation
+One you've persistence driver use that to create a scheduler
 ```go
-scheduler.CheckEventsInInterval(ctx, time.Minute)
-```
+import (
+    scheduler "github.com/apudiu/event-scheduler"
+)
 
-**Output looks like;**
+// ListenersList register listeners to events
+var listenersMap = scheduler.Listeners{
+    "EventSendEmail": { // event name
+        listeners.SendEmailListener, // listener function which is type of scheduler.ListenFunc
+        // can register more listeners for this event here ...
+    },
+    "EventPrintTime": {
+        listeners.PrintTimeListener,
+    },
+    // can have more mapping here ...
+}
+
+var SCD = scheduler.NewScheduler(s, listenersMap)
 ```
-2021/01/16 11:58:49 💾 Seeding database with table...
-2021/01/16 11:58:49 🚀 Scheduling event SendEmail to run at 2021-01-16 11:59:49.344904505 +0545 +0545 m=+60.004623549
-2021/01/16 11:58:49 🚀 Scheduling event PayBills to run at 2021-01-16 12:00:49.34773798 +0545 +0545 m=+120.007457039
-2021/01/16 11:59:49 ⏰ Ticks Received...
-2021/01/16 11:59:49 📨 Sending email with data:  mail: nilkantha.dipesh@gmail.com
-2021/01/16 12:00:49 ⏰ Ticks Received...
-2021/01/16 12:01:49 ⏰ Ticks Received...
-2021/01/16 12:01:49 💲 Pay me a bill:  paybills: $4,000 bill
-2021/01/16 12:02:49 ⏰ Ticks Received...
-2021/01/16 12:03:49 ⏰ Ticks Received...
-^C2021/01/16 12:03:57 
-❌ Interrupt received closing...
-```
+todo: complete readme...
