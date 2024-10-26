@@ -1,10 +1,12 @@
-name: Publish go package on new tag
+name: Publish go package
 
 #env:
 #  CI: false
 
 on:
   push:
+    branches:
+      - master
     tags:
       # supports: v1.2.3 and v1.2.3.alpha.1, v1.2.3-beta.3
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
