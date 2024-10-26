@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"github.com/apudiu/event-scheduler/example/bootstrap"
-	"github.com/apudiu/event-scheduler/example/events"
 	"log"
 	"os"
 	"os/signal"
@@ -29,12 +28,16 @@ func main() {
 
 	bootstrap.SCD.CheckEventsInInterval(ctx, time.Second*5)
 
-	//bootstrap.SCD.Schedule("SendEmail", "mail: nilkantha.dipesh@gmail.com", time.Now().Add(1*time.Minute))
-	//bootstrap.SCD.Schedule("PayBills", "paybills: $4,000 bill", time.Now().Add(2*time.Minute))
+	//p := payload.NewGobPayload(
+	//	fmt.Sprintf("Send email to %s with content %s", "nilkantha.dipesh@gmail.com", "CONTENT"),
+	//)
+	//if err := events.SendEmailEvent().Dispatch(p, time.Now().Add(time.Second*5)); err != nil {
+	//	log.Fatal("event dispatch failed: ", err)
+	//}
 	//
-	//bootstrap.SCD.ScheduleRecurring("SendEmail", "mail: dipesh.dulal+new@wesionary.team", "* * * * *")
-
-	events.SendEmailEvent("nilkantha.dipesh@gmail.com", "thank you!")
+	//if err := events.PrintTimeEvent().DispatchDur(payload.NewGobPayload(""), time.Second*7); err != nil {
+	//	log.Fatal("event dispatch failed: ", err)
+	//}
 
 	go func() {
 		for range interrupt {

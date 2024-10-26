@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Driver implements db.DataPersistent and uses gorm supported DB's for persistence
+// Driver implements dp.DataPersistent and uses gorm supported DB's for persistence
 type Driver struct {
 	db *gorm.DB
 }

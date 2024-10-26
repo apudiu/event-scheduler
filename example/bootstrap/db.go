@@ -2,7 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
-	"github.com/apudiu/event-scheduler/db/driver/gormdriver"
+	"github.com/apudiu/event-scheduler/dp/driver/gormdriver"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

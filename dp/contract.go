@@ -1,4 +1,4 @@
-package db
+package dp
 
 import (
 	"github.com/apudiu/event-scheduler/event"
