@@ -1,4 +1,4 @@
-package db
+package bootstrap
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"log"
 )
 
 // DB database variable
@@ -36,16 +37,16 @@ func ConnectDB() {
 		panic("failed to connect database")
 	}
 
-	fmt.Println("Connection Opened to Database")
+	log.Println("Connection Opened to Database")
 
 	// auto migrate
 	mgErr := DB.AutoMigrate(
 		&gormdriver.Model{},
 	)
 	if mgErr != nil {
-		fmt.Println("Auto migration err", mgErr.Error())
+		log.Fatalln("Auto migration err", mgErr.Error())
 		return
-	} else {
-		fmt.Println("Database Migrated")
 	}
+
+	log.Println("Database Migrated")
 }

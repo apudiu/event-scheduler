@@ -2,18 +2,20 @@ package main
 
 import (
 	"context"
-	"github.com/apudiu/event-scheduler/customevents"
-	"github.com/apudiu/event-scheduler/db/driver/gormdriver"
-	"gorm.io/gorm"
+	"github.com/apudiu/event-scheduler/example/bootstrap"
+	"github.com/apudiu/event-scheduler/example/events"
 	"log"
 	"os"
 	"os/signal"
 	"time"
 )
 
-var eventListeners = event_scheduler.Listeners{
-	"SendEmail": {customevents.SendEmail},
-	"PayBills":  {customevents.PayBills},
+func init() {
+	// init db conn
+	bootstrap.ConnectDB()
+
+	// init scheduler
+	bootstrap.InitScheduler()
 }
 
 func main() {
@@ -22,20 +24,17 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	var db *gorm.DB
-
-	s := gormdriver.New(db)
-	scd := event_scheduler.NewScheduler(s, eventListeners)
-
-	stopCron := scd.StartCron()
+	stopCron := bootstrap.SCD.StartCron()
 	defer stopCron()
 
-	scd.CheckEventsInInterval(ctx, time.Minute)
+	bootstrap.SCD.CheckEventsInInterval(ctx, time.Second*5)
 
-	scd.Schedule("SendEmail", "mail: nilkantha.dipesh@gmail.com", time.Now().Add(1*time.Minute))
-	scd.Schedule("PayBills", "paybills: $4,000 bill", time.Now().Add(2*time.Minute))
+	//bootstrap.SCD.Schedule("SendEmail", "mail: nilkantha.dipesh@gmail.com", time.Now().Add(1*time.Minute))
+	//bootstrap.SCD.Schedule("PayBills", "paybills: $4,000 bill", time.Now().Add(2*time.Minute))
+	//
+	//bootstrap.SCD.ScheduleRecurring("SendEmail", "mail: dipesh.dulal+new@wesionary.team", "* * * * *")
 
-	scd.ScheduleRecurring("SendEmail", "mail: dipesh.dulal+new@wesionary.team", "* * * * *")
+	events.SendEmailEvent("nilkantha.dipesh@gmail.com", "thank you!")
 
 	go func() {
 		for range interrupt {

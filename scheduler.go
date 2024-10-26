@@ -11,6 +11,7 @@ import (
 
 	"github.com/apudiu/event-scheduler/db"
 	"github.com/apudiu/event-scheduler/event"
+	"github.com/apudiu/event-scheduler/event/payload"
 )
 
 // Scheduler data structure
@@ -25,7 +26,7 @@ type Scheduler struct {
 type Listeners map[string][]ListenFunc
 
 // ListenFunc function that listens to events
-type ListenFunc func(string)
+type ListenFunc func(data payload.TransferablePayload)
 
 // NewScheduler creates a new scheduler
 func NewScheduler(dp db.DataPersistent, listeners Listeners) *Scheduler {
@@ -98,7 +99,7 @@ func (s Scheduler) checkDueEvents() *[]event.Event {
 }
 
 // Schedule schedules the provided events
-func (s Scheduler) Schedule(event string, payload string, runAt time.Time) {
+func (s Scheduler) Schedule(event string, payload payload.TransferablePayload, runAt time.Time) {
 	log.Print("🚀 Scheduling event ", event, " to run at ", runAt)
 	_, err := s.dp.AddWithTime(event, payload, runAt)
 	if err != nil {
@@ -106,7 +107,7 @@ func (s Scheduler) Schedule(event string, payload string, runAt time.Time) {
 	}
 }
 
-func (s Scheduler) ScheduleDur(event string, payload string, runAfter time.Duration) {
+func (s Scheduler) ScheduleDur(event string, payload payload.TransferablePayload, runAfter time.Duration) {
 	log.Print("🚀 Scheduling event with dur ", event, " to run after ", runAfter)
 	_, err := s.dp.AddWithDuration(event, payload, runAfter)
 	if err != nil {
@@ -115,7 +116,7 @@ func (s Scheduler) ScheduleDur(event string, payload string, runAfter time.Durat
 }
 
 // ScheduleRecurring schedules a cron job
-func (s Scheduler) ScheduleRecurring(evtName string, payload string, cronStr string) {
+func (s Scheduler) ScheduleRecurring(evtName string, payload payload.TransferablePayload, cronStr string) {
 	log.Print("🚀 Scheduling event ", evtName, " with cron string ", cronStr)
 	entryID, ok := s.cronEntries[evtName]
 	if ok {

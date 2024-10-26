@@ -12,20 +12,20 @@ type GobPayload struct {
 	marshalled   []byte
 }
 
-func (tp *GobPayload) Marshal() error {
+func (tp *GobPayload) Marshal() ([]byte, error) {
 	// do not encode multiple times
 	if tp.isMarshalled {
-		return nil
+		return tp.marshalled, nil
 	}
 
 	b, e := helper.EncodeToGob(tp.unmarshalled)
 	if e != nil {
-		return e
+		return nil, e
 	}
 
 	tp.marshalled = b
 	tp.isMarshalled = true
-	return nil
+	return b, nil
 }
 
 func (tp *GobPayload) IsMarshaled() bool {
