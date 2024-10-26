@@ -16,12 +16,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        run: sudo snap install go
+        uses: actions/setup-go
+        with:
+          go-version: '^1.18'
+      - name: Verify Go
+        run: go version
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Fetch latest tag
         id: latestTag
-        uses: 32teeth/action-github-tag@v1
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: github.com/apudiu/event-scheduler
+          releases-only: false
       - name: Publish to pkg.go.dev
         run: GOPROXY=proxy.golang.org go list -m github.com/apudiu/event-scheduler@${{steps.latestTag.outputs.tag}}
       - name: Success msg
