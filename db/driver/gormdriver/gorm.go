@@ -3,6 +3,7 @@ package gormdriver
 import (
 	"fmt"
 	"github.com/apudiu/event-scheduler/event"
+	"github.com/apudiu/event-scheduler/event/payload"
 	"gorm.io/gorm"
 	"time"
 )
@@ -34,10 +35,15 @@ func (d *Driver) GetAll() ([]event.SchedulerEvent, error) {
 	return events, nil
 }
 
-func (d *Driver) AddWithTime(name, payload string, runAt time.Time) (event.SchedulerEvent, error) {
+func (d *Driver) AddWithTime(name string, data payload.TransferablePayload, runAt time.Time) (event.SchedulerEvent, error) {
+	p, e := data.Marshal()
+	if e != nil {
+		return nil, e
+	}
+
 	m := Model{
 		Name:    name,
-		Payload: payload,
+		Payload: p,
 		RunAt:   &runAt,
 	}
 
@@ -47,9 +53,9 @@ func (d *Driver) AddWithTime(name, payload string, runAt time.Time) (event.Sched
 	return &m, nil
 }
 
-func (d *Driver) AddWithDuration(name, payload string, runAfter time.Duration) (event.SchedulerEvent, error) {
+func (d *Driver) AddWithDuration(name string, data payload.TransferablePayload, runAfter time.Duration) (event.SchedulerEvent, error) {
 	t := time.Now().Add(runAfter)
-	return d.AddWithTime(name, payload, t)
+	return d.AddWithTime(name, data, t)
 }
 
 func (d *Driver) GetAllRecurring() ([]event.SchedulerEvent, error) {
@@ -66,10 +72,15 @@ func (d *Driver) GetAllRecurring() ([]event.SchedulerEvent, error) {
 	return events, nil
 }
 
-func (d *Driver) AddRecurring(name, payload, cron string) (event.SchedulerEvent, error) {
+func (d *Driver) AddRecurring(name string, data payload.TransferablePayload, cron string) (event.SchedulerEvent, error) {
+	p, e := data.Marshal()
+	if e != nil {
+		return nil, e
+	}
+
 	m := Model{
 		Name:    name,
-		Payload: payload,
+		Payload: p,
 		Cron:    &cron,
 	}
 
@@ -79,13 +90,13 @@ func (d *Driver) AddRecurring(name, payload, cron string) (event.SchedulerEvent,
 	return &m, nil
 }
 
-func (d *Driver) AddRecurringWithDuration(name, payload string, runEvery time.Duration) (event.SchedulerEvent, error) {
+func (d *Driver) AddRecurringWithDuration(name string, data payload.TransferablePayload, runEvery time.Duration) (event.SchedulerEvent, error) {
 	now := time.Now()
 	dur := now.Add(runEvery).Sub(now)
 
 	cronTxt := fmt.Sprintf("@every %s", dur)
 
-	return d.AddRecurring(name, payload, cronTxt)
+	return d.AddRecurring(name, data, cronTxt)
 }
 
 func (d *Driver) UpdateByName(eventName string, evt *event.Event) error {

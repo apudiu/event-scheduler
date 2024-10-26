@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/apudiu/event-scheduler/event"
+	"github.com/apudiu/event-scheduler/event/payload"
 	"time"
 )
 
@@ -15,18 +16,18 @@ type DataPersistent interface {
 	GetAll() ([]event.SchedulerEvent, error)
 
 	// AddWithTime creates one time event with specified time.Time
-	AddWithTime(name, payload string, runAt time.Time) (event.SchedulerEvent, error)
+	AddWithTime(name string, payload payload.TransferablePayload, runAt time.Time) (event.SchedulerEvent, error)
 	// AddWithDuration creates one time event with specified time.Duration
-	AddWithDuration(name, payload string, runAfter time.Duration) (event.SchedulerEvent, error)
+	AddWithDuration(name string, payload payload.TransferablePayload, runAfter time.Duration) (event.SchedulerEvent, error)
 
 	// GetAllRecurring retrieves recurring events that has cron associated with it
 	GetAllRecurring() ([]event.SchedulerEvent, error)
 
 	// AddRecurring creates recurring event with specified cron. cron should be a valid cron string (you can make one here: https://crontab.guru).
 	// Also "@every [unit]" is supported. Ex: @every 5s = every 5 seconds, @every 5d = every 5 days, @every 5w = every 5 weeks ...
-	AddRecurring(name, payload, cron string) (event.SchedulerEvent, error)
+	AddRecurring(name string, payload payload.TransferablePayload, cron string) (event.SchedulerEvent, error)
 	// AddRecurringWithDuration crates recurring event with specified duration
-	AddRecurringWithDuration(name, payload string, runEvery time.Duration) (event.SchedulerEvent, error)
+	AddRecurringWithDuration(name string, payload payload.TransferablePayload, runEvery time.Duration) (event.SchedulerEvent, error)
 
 	// UpdateByName updates one event by event name, as gorm's policy "zero" value field will be excluded from updating
 	UpdateByName(eventName string, evt *event.Event) error
