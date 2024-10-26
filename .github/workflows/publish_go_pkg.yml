@@ -27,8 +27,7 @@ jobs:
         id: latestTag
         uses: oprypin/find-latest-tag@v1
         with:
-          repository: github.com/apudiu/event-scheduler
-          releases-only: false
+          repository: apudiu/event-scheduler
       - name: Publish to pkg.go.dev
         run: GOPROXY=proxy.golang.org go list -m github.com/apudiu/event-scheduler@${{steps.latestTag.outputs.tag}}
       - name: Success msg
