@@ -4,7 +4,6 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
 	"github.com/apudiu/event-scheduler/dp"
 	"log"
 	"time"
@@ -88,7 +87,6 @@ func (s Scheduler) CheckEventsInInterval(ctx context.Context, duration time.Dura
 func (s Scheduler) checkDueEvents() []event.Event {
 	sEvents, err := s.p.GetAll()
 	if err != nil {
-		fmt.Printf("--------------------> %#v \n", err)
 		log.Print("💀 error: ", err)
 		return nil
 	}

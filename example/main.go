@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/apudiu/event-scheduler/event/payload"
 	"github.com/apudiu/event-scheduler/example/bootstrap"
+	"github.com/apudiu/event-scheduler/example/events"
 	"log"
 	"os"
 	"os/signal"
@@ -28,16 +31,16 @@ func main() {
 
 	bootstrap.SCD.CheckEventsInInterval(ctx, time.Second*5)
 
-	//p := payload.NewGobPayload(
-	//	fmt.Sprintf("Send email to %s with content %s", "nilkantha.dipesh@gmail.com", "CONTENT"),
-	//)
-	//if err := events.SendEmailEvent().Dispatch(p, time.Now().Add(time.Second*5)); err != nil {
-	//	log.Fatal("event dispatch failed: ", err)
-	//}
-	//
-	//if err := events.PrintTimeEvent().DispatchDur(payload.NewGobPayload(""), time.Second*7); err != nil {
-	//	log.Fatal("event dispatch failed: ", err)
-	//}
+	p := payload.NewGobPayload(
+		fmt.Sprintf("Send email to %s with content %s", "nilkantha.dipesh@gmail.com", "CONTENT"),
+	)
+	if err := events.SendEmailEvent().Dispatch(p, time.Now().Add(time.Second*5)); err != nil {
+		log.Fatal("event dispatch failed: ", err)
+	}
+
+	if err := events.PrintTimeEvent().DispatchDur(payload.NewGobPayload(""), time.Second*7); err != nil {
+		log.Fatal("event dispatch failed: ", err)
+	}
 
 	go func() {
 		for range interrupt {
