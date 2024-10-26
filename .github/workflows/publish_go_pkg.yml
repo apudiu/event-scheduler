@@ -1,0 +1,26 @@
+name: Publish go package on new tag
+
+#env:
+#  CI: false
+
+on:
+  push:
+    tags:
+      # supports: v1.2.3 and v1.2.3.alpha.1, v1.2.3-beta.3
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+jobs:
+  publish-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        run: sudo snap install go
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Fetch latest tag
+        id: latestTag
+        uses: 32teeth/action-github-tag@v1
+      - name: Publish to pkg.go.dev
+        run: GOPROXY=proxy.golang.org go list -m github.com/apudiu/event-scheduler@${{steps.latestTag.outputs.tag}}
+      - name: Success msg
+        run: echo 'Published package version - ${{steps.latestTag.outputs.tag}}. Url - https://pkg.go.dev/github.com/apudiu/event-scheduler'
