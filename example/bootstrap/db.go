@@ -17,9 +17,9 @@ func ConnectDB() {
 	var err error
 
 	// user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local // Postgres Database
-	// user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4 // MySQL/ MariaDB Database
+	// user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local // MySQL/ MariaDB Database
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4",
+		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		"root",
 		"123456",
 		"localhost",

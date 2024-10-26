@@ -4,6 +4,7 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -73,7 +74,8 @@ func (s Scheduler) CheckEventsInInterval(ctx context.Context, duration time.Dura
 			case <-ticker.C:
 				log.Println("⏰ Ticks Received...")
 				events := s.checkDueEvents()
-				for _, e := range *events {
+				//fmt.Printf("------------------- %#v \n", events)
+				for _, e := range events {
 					s.callListeners(e)
 				}
 			}
@@ -83,9 +85,10 @@ func (s Scheduler) CheckEventsInInterval(ctx context.Context, duration time.Dura
 }
 
 // checkDueEvents checks and returns due events
-func (s Scheduler) checkDueEvents() *[]event.Event {
+func (s Scheduler) checkDueEvents() []event.Event {
 	sEvents, err := s.dp.GetAll()
 	if err != nil {
+		fmt.Printf("--------------------> %#v \n", err)
 		log.Print("💀 error: ", err)
 		return nil
 	}
@@ -95,7 +98,7 @@ func (s Scheduler) checkDueEvents() *[]event.Event {
 		events = append(events, *se.GetEvent())
 	}
 
-	return &events
+	return events
 }
 
 // Schedule schedules the provided events
