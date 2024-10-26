@@ -5,8 +5,6 @@ name: Publish go package
 
 on:
   push:
-    branches:
-      - master
     tags:
       # supports: v1.2.3 and v1.2.3.alpha.1, v1.2.3-beta.3
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
@@ -25,10 +23,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Fetch latest tag
         id: latestTag
-        uses: oprypin/find-latest-tag@v1
-        with:
-          repository: apudiu/event-scheduler@master
+        run: echo "latest_tag=$(echo git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
       - name: Publish to pkg.go.dev
-        run: GOPROXY=proxy.golang.org go list -m github.com/apudiu/event-scheduler@${{steps.latestTag.outputs.tag}}
+        run: GOPROXY=proxy.golang.org go list -m github.com/apudiu/event-scheduler@${{steps.latestTag.outputs.latest_tag}}
       - name: Success msg
-        run: echo 'Published package version - ${{steps.latestTag.outputs.tag}}. Url - https://pkg.go.dev/github.com/apudiu/event-scheduler'
+        run: echo 'Published package version - ${{steps.latestTag.outputs.latest_tag}}. Url - https://pkg.go.dev/github.com/apudiu/event-scheduler'
