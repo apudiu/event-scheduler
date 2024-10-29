@@ -13,5 +13,5 @@ func InitScheduler() {
 	s := gormdriver.New(DB)
 
 	// init scheduler with listeners mapping
-	SCD = scheduler.NewScheduler(s, eventListenersMap.ListenersList)
+	SCD = scheduler.NewScheduler(s, eventListenersMap.ListenersList, true)
 }

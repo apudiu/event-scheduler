@@ -20,6 +20,7 @@ type Scheduler struct {
 	listeners   Listeners
 	cron        *cron.Cron
 	cronEntries map[string]cron.EntryID
+	debug       bool
 }
 
 // Listeners has attached event listeners
@@ -29,12 +30,13 @@ type Listeners map[string][]ListenFunc
 type ListenFunc func(data payload.TransferablePayload)
 
 // NewScheduler creates a new scheduler
-func NewScheduler(p dp.DataPersistent, listeners Listeners) *Scheduler {
+func NewScheduler(p dp.DataPersistent, listeners Listeners, debug bool) *Scheduler {
 	return &Scheduler{
 		p:           p,
 		listeners:   listeners,
 		cron:        cron.New(),
 		cronEntries: map[string]cron.EntryID{},
+		debug:       debug,
 	}
 }
 
@@ -71,7 +73,10 @@ func (s Scheduler) CheckEventsInInterval(ctx context.Context, duration time.Dura
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				log.Println("⏰ Ticks Received...")
+				if s.debug {
+					log.Println("⏰ Ticks Received...")
+				}
+
 				events := s.checkDueEvents()
 				//fmt.Printf("------------------- %#v \n", events)
 				for _, e := range events {
@@ -101,14 +106,18 @@ func (s Scheduler) checkDueEvents() []event.Event {
 
 // Schedule schedules the provided events
 func (s Scheduler) Schedule(event string, payload payload.TransferablePayload, runAt time.Time) error {
-	log.Print("🚀 Scheduling event ", event, " to run at ", runAt)
+	if s.debug {
+		log.Print("🚀 Scheduling event ", event, " to run at ", runAt)
+	}
 
 	_, err := s.p.AddWithTime(event, payload, runAt)
 	return err
 }
 
 func (s Scheduler) ScheduleDur(event string, payload payload.TransferablePayload, runAfter time.Duration) error {
-	log.Print("🚀 Scheduling event with dur ", event, " to run after ", runAfter)
+	if s.debug {
+		log.Print("🚀 Scheduling event with dur ", event, " to run after ", runAfter)
+	}
 
 	_, err := s.p.AddWithDuration(event, payload, runAfter)
 	return err
@@ -116,7 +125,9 @@ func (s Scheduler) ScheduleDur(event string, payload payload.TransferablePayload
 
 // ScheduleRecurring schedules a cron job
 func (s Scheduler) ScheduleRecurring(evtName string, payload payload.TransferablePayload, cronStr string) error {
-	log.Print("🚀 Scheduling event ", evtName, " with cron string ", cronStr)
+	if s.debug {
+		log.Print("🚀 Scheduling event ", evtName, " with cron string ", cronStr)
+	}
 
 	entryID, ok := s.cronEntries[evtName]
 	if ok {
@@ -156,7 +167,10 @@ func (s Scheduler) ScheduleRecurring(evtName string, payload payload.Transferabl
 
 // attachCronJobs attaches cron jobs
 func (s Scheduler) attachCronJobs() {
-	log.Printf("Attaching cron jobs")
+	if s.debug {
+		log.Printf("Attaching cron jobs")
+	}
+
 	sEvents, err := s.p.GetAllRecurring()
 	if err != nil {
 		log.Print("💀 error: ", err)
