@@ -26,7 +26,7 @@ func (m *Model) GetEvent() *event.Event {
 	return &event.Event{
 		ID:      m.ID,
 		Name:    m.Name,
-		Payload: payload.NewEncodedGobPayload(m.Payload),
+		Payload: payload.NewEncodedGobPayload(m.Name, m.Payload),
 		Cron:    m.Cron,
 	}
 }

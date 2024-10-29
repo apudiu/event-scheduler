@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-var PrintTimeListener scheduler.ListenFunc = func(_ payload.TransferablePayload) {
+var PrintTimeListener scheduler.ListenFunc = func(d payload.TransferablePayload) {
 
 	// we do not need data in this case
 
-	log.Printf("Listener executing with value: %#v \n", time.Now().Format(time.RFC850))
+	log.Printf("Listener executing on event: %s with value: %#v \n", d.EventName(), time.Now().Format(time.RFC850))
 }

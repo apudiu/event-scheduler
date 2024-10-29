@@ -27,6 +27,9 @@ func (t *DelayedEvent) Dispatch(data payload.TransferablePayload, at time.Time) 
 		return fmt.Errorf("scheduler is not initialized: %v\n", t.s)
 	}
 
+	// set event name
+	data.SetEventName(t.name)
+
 	return t.s.Schedule(t.name, data, at)
 }
 

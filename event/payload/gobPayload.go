@@ -3,13 +3,27 @@ package payload
 import (
 	"errors"
 	"github.com/apudiu/event-scheduler/helper"
+	"log"
 )
 
-// GobPayload encodes data to gob & decodes from gob
+// GobPayload encodes data to gob & decodes from gob, it implements TransferablePayload
 type GobPayload struct {
 	isMarshalled bool
 	unmarshalled any
 	marshalled   []byte
+	eventName    string
+}
+
+func (tp *GobPayload) EventName() string {
+	return tp.eventName
+}
+
+func (tp *GobPayload) SetEventName(eventName string) {
+	if tp.eventName != "" {
+		log.Fatalf("Event name already set, once set you can't set it again")
+	}
+
+	tp.eventName = eventName
 }
 
 func (tp *GobPayload) Marshal() ([]byte, error) {
@@ -53,9 +67,10 @@ func NewGobPayload(data any) *GobPayload {
 }
 
 // NewEncodedGobPayload is meant to create a payload from gob marshalled data
-func NewEncodedGobPayload(gobEncodedData []byte) *GobPayload {
+func NewEncodedGobPayload(eventName string, gobEncodedData []byte) *GobPayload {
 	return &GobPayload{
 		marshalled:   gobEncodedData,
 		isMarshalled: true,
+		eventName:    eventName,
 	}
 }

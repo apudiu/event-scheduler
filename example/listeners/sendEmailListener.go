@@ -13,10 +13,10 @@ var SendEmailListener scheduler.ListenFunc = func(data payload.TransferablePaylo
 
 	var decoded string
 	if err := data.Unmarshal(&decoded); err != nil {
-		log.Printf("Data unmarshalling failed, value: %v\n", data)
+		log.Printf("Data unmarshalling failed on event: %s, value: %v\n", data.EventName(), data)
 	}
 
 	// do whatever you need with the decoded payload
 
-	log.Printf("Listener executing with value: %#v \n", decoded)
+	log.Printf("Listener executing with on event: %s with value: %#v \n", data.EventName(), decoded)
 }
