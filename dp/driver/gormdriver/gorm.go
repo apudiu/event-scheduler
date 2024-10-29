@@ -23,7 +23,7 @@ func (d *Driver) GetOne(eventId uint) (event.SchedulerEvent, error) {
 
 func (d *Driver) GetAll() ([]event.SchedulerEvent, error) {
 	models := make([]Model, 0)
-	if err := d.db.Find(&models, "cron IS NULL").Error; err != nil {
+	if err := d.db.Find(&models, "cron IS NULL AND run_at <= ?", time.Now()).Error; err != nil {
 		return nil, err
 	}
 
