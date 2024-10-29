@@ -27,10 +27,15 @@ func (re *RecurringEvent) Dispatch(data payload.TransferablePayload, cronStr str
 		return fmt.Errorf("scheduler is not initialized: %v\n", re.s)
 	}
 
-	// set event name
-	data.SetEventName(re.name)
+	pl := data
+	if data == nil {
+		pl = payload.NewGobPayload("")
+	}
 
-	return re.s.ScheduleRecurring(re.name, data, cronStr)
+	// set event name
+	pl.SetEventName(re.name)
+
+	return re.s.ScheduleRecurring(re.name, pl, cronStr)
 }
 
 // DispatchDur dispatches event with specified 'every' time.Duration
@@ -39,10 +44,15 @@ func (re *RecurringEvent) DispatchDur(data payload.TransferablePayload, every ti
 		return fmt.Errorf("scheduler is not initialized: %v\n", re.s)
 	}
 
-	data.SetEventName(re.name)
+	pl := data
+	if data == nil {
+		pl = payload.NewGobPayload("")
+	}
+
+	pl.SetEventName(re.name)
 
 	cronStr := "@every " + every.String()
-	return re.s.ScheduleRecurring(re.name, data, cronStr)
+	return re.s.ScheduleRecurring(re.name, pl, cronStr)
 }
 
 // NewRecurringEvent creates a new event that can be dispatched for recurring execution

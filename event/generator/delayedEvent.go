@@ -27,10 +27,16 @@ func (de *DelayedEvent) Dispatch(data payload.TransferablePayload, at time.Time)
 		return fmt.Errorf("scheduler is not initialized: %v\n", de.s)
 	}
 
-	// set event name
-	data.SetEventName(de.name)
+	// if no data provided then use existing gobPayload with empty string
+	pl := data
+	if data == nil {
+		pl = payload.NewGobPayload("")
+	}
 
-	e := de.s.Schedule(de.name, data, at)
+	// set event name
+	pl.SetEventName(de.name)
+
+	e := de.s.Schedule(de.name, pl, at)
 	return e
 }
 
@@ -40,10 +46,15 @@ func (de *DelayedEvent) DispatchDur(data payload.TransferablePayload, after time
 		return fmt.Errorf("scheduler is not initialized: %v\n", de.s)
 	}
 
-	data.SetEventName(de.name)
+	pl := data
+	if data == nil {
+		pl = payload.NewGobPayload("")
+	}
+
+	pl.SetEventName(de.name)
 
 	at := time.Now().Add(after)
-	return de.Dispatch(data, at)
+	return de.Dispatch(pl, at)
 }
 
 // NewDelayedEvent creates a new delayed event that can be dispatched
