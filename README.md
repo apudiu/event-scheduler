@@ -107,6 +107,8 @@ var SendEmailListener scheduler.ListenFunc = func(data payload.TransferablePaylo
 Once the listener(s) is ready for an event, you need to register that to the scheduler (when creating scheduler).
 We've registered couple of listeners with events in **Scheduler creation** section above
 
+If something is still not clear for you, simple check **example** directory.
+
 #### State and roadmap
 This lib is in it's very early stage. Theres no tests, some parts of the pkg can be more idiomatic etc.
 You get the idea that this package does exactly what I need now.
