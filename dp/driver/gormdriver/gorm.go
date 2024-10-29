@@ -100,8 +100,17 @@ func (d *Driver) AddRecurringWithDuration(name string, data payload.Transferable
 }
 
 func (d *Driver) UpdateByName(eventName string, evt *event.Event) error {
-	if err := d.db.Where("name = ?", eventName).Updates(evt).Error; err != nil {
+	p, err := evt.Payload.Marshal()
+	if err != nil {
 		return err
+	}
+
+	m := &Model{
+		Payload: p,
+		Cron:    evt.Cron,
+	}
+	if err2 := d.db.Where("name = ?", eventName).Updates(m).Error; err2 != nil {
+		return err2
 	}
 	return nil
 }

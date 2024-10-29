@@ -14,33 +14,36 @@ type DelayedEvent struct {
 }
 
 // Name returns name of the event, it exits when name not set, so be sure to call it after the event is created with NewDelayedEvent
-func (t *DelayedEvent) Name() string {
-	if t.name == "" {
+func (de *DelayedEvent) Name() string {
+	if de.name == "" {
 		log.Fatalln("Event is not initialized with new, first make a new event then try to access the name")
 	}
-	return t.name
+	return de.name
 }
 
 // Dispatch dispatches event with specified time.Time
-func (t *DelayedEvent) Dispatch(data payload.TransferablePayload, at time.Time) error {
-	if t.s == nil {
-		return fmt.Errorf("scheduler is not initialized: %v\n", t.s)
+func (de *DelayedEvent) Dispatch(data payload.TransferablePayload, at time.Time) error {
+	if de.s == nil {
+		return fmt.Errorf("scheduler is not initialized: %v\n", de.s)
 	}
 
 	// set event name
-	data.SetEventName(t.name)
+	data.SetEventName(de.name)
 
-	return t.s.Schedule(t.name, data, at)
+	e := de.s.Schedule(de.name, data, at)
+	return e
 }
 
 // DispatchDur dispatches event with specified time.Duration
-func (t *DelayedEvent) DispatchDur(data payload.TransferablePayload, after time.Duration) error {
-	if t.s == nil {
-		return fmt.Errorf("scheduler is not initialized: %v\n", t.s)
+func (de *DelayedEvent) DispatchDur(data payload.TransferablePayload, after time.Duration) error {
+	if de.s == nil {
+		return fmt.Errorf("scheduler is not initialized: %v\n", de.s)
 	}
 
+	data.SetEventName(de.name)
+
 	at := time.Now().Add(after)
-	return t.Dispatch(data, at)
+	return de.Dispatch(data, at)
 }
 
 // NewDelayedEvent creates a new delayed event that can be dispatched

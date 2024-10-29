@@ -129,10 +129,12 @@ This lib is in it's very early stage. Theres no tests, some parts of the pkg can
 You get the idea that this package does exactly what I need now.
 
 Following is current roadmap from my side.
-1. Add tests
-2. Add redis `DataPersistence`
-3. Add more payloads `TransferablePayload`
-4. Add benchmarks
+1. Ack based event removal for delayed (one time) events (so events remains in db while listener crashed)
+2. Implement re-try mechanism
+3. Add tests
+4. Add redis `DataPersistence`
+5. Add more payloads `TransferablePayload`
+6. Add benchmarks
 
 I'll do this over time when I get time for it.
 
