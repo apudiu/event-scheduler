@@ -7,6 +7,21 @@ This is a scheduler with support for events persistence. Following is key featur
 
 #### To run example;
 - Clone repo & set your (`gorm` supported db) credentials in `example/bootstrap/db.go:21`
+- Create db table from `gormdriver.Model` or following sql
+```sql
+create table scheduler_events (
+    id         bigint unsigned auto_increment primary key,
+    name       varchar(250)   not null,
+    payload    varbinary(500) not null,
+    run_at     datetime       null,
+    cron       varchar(150)   null,
+    created_at datetime       null,
+    updated_at datetime       null
+);
+
+create index idx_scheduler_events_name
+    on scheduler_events (name);
+```
 - Run `go run example/main.go` 
 
 #### Installation
